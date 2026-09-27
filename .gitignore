@@ -1,0 +1,19 @@
+# Entorno virtual
+venv/
+env/
+.venv/
+
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Archivos de caché
+productos_laboratorios.csv
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

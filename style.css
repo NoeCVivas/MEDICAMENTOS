@@ -1,0 +1,344 @@
+/* Definición de la paleta de colores */
+:root {
+    --color1: #CFF0EA; /* Muy claro - Fondos y detalles */
+    --color2: #88C9C4; /* Claro - Bordes y acentos */
+    --color3: #3E9B94; /* Medio - Textos secundarios y hover */
+    --color4: #20666B; /* Oscuro - Textos principales y botones */
+    --color5: #0C3B45; /* Muy oscuro - Títulos y contraste fuerte */
+    
+    --bg-body: #f4fbf9; 
+    --bg-card: #ffffff;
+}
+
+/* Reset básico y tipografía */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-body);
+    color: var(--color4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Contenedor principal */
+.app-container {
+    background-color: var(--bg-card);
+    width: 100%;
+    max-width: 1100px;
+    border: 1px solid var(--color2);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(12, 59, 69, 0.08);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Encabezado */
+.main-header {
+    text-align: center;
+    padding: 30px 20px;
+    border-bottom: 2px solid var(--color1);
+    background-color: var(--color1);
+}
+
+.main-header h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--color5);
+    margin-bottom: 5px;
+}
+
+.main-header p {
+    font-size: 1rem;
+    color: var(--color4);
+    letter-spacing: 1px;
+}
+
+/* Contenido principal (Grid de 2 columnas) */
+.content {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    min-height: 500px;
+    max-width: 100%;
+}
+
+/* Barra lateral de consultas */
+.sidebar {
+    padding: 25px;
+    border-right: 2px solid var(--color1);
+    background-color: var(--bg-card);
+}
+
+.sidebar h2 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color4);
+    letter-spacing: 1.5px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Botones de consulta */
+.query-btn {
+    background-color: var(--bg-card);
+    border: 1px solid var(--color2);
+    border-radius: 6px;
+    padding: 12px 15px;
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    color: var(--color4);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(12, 59, 69, 0.03);
+}
+
+.query-btn:hover {
+    background-color: var(--color1);
+    border-color: var(--color3);
+    color: var(--color5);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(12, 59, 69, 0.08);
+}
+
+.query-btn:active {
+    transform: translateY(0);
+    background-color: var(--color2);
+}
+
+/* Botón de salir */
+.btn-salir {
+    margin-top: 15px;
+    border-color: var(--color4);
+    color: var(--color5);
+    font-weight: 600;
+}
+
+.btn-salir:hover {
+    background-color: var(--color1);
+    border-color: var(--color5);
+    color: var(--color5);
+}
+
+/* Panel de resultados */
+.results-panel {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-card);
+    max-width: 100%;
+    overflow: hidden; /* Previene que el contenido empuje el layout */
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--color1);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.results-header h3 {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color4);
+    letter-spacing: 1px;
+}
+
+#consulta-num {
+    font-weight: 600;
+    color: var(--color5);
+}
+
+/* CONTENEDOR DE LA TABLA CON SCROLL INTERNO */
+.results-content {
+    flex-grow: 1;
+    border: 1px dashed var(--color2);
+    border-radius: 6px;
+    padding: 10px; /* Reducido para dar más espacio a la tabla */
+    background-color: #fafffe;
+    overflow-y: auto;
+    overflow-x: auto; /* Agrega scroll horizontal si es necesario */
+    max-height: 500px;
+    width: 100%;
+}
+
+.placeholder-text {
+    color: var(--color3);
+    font-style: italic;
+    text-align: center;
+    margin-top: 50px;
+}
+
+/* SOLUCIÓN A LA TABLA DESBORDADA */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem; /* Fuente un poco más pequeña para que entre mejor */
+    table-layout: fixed; /* Fuerza a la tabla a respetar el ancho de la pantalla */
+}
+
+th, td {
+    padding: 10px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--color1);
+    word-wrap: break-word; /* Rompe palabras largas para que no desborden */
+    vertical-align: top;
+}
+
+th {
+    background-color: var(--color1);
+    font-weight: 600;
+    color: var(--color5);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Definir anchos proporcionales para las columnas */
+th:nth-child(1) { width: 13%; } /* Laboratorio */
+th:nth-child(2) { width: 18%; } /* Nombre Comercial */
+th:nth-child(3) { width: 22%; } /* Principio Activo */
+th:nth-child(4) { width: 12%; } /* Concentración */
+th:nth-child(5) { width: 35%; } /* Acción Terapéutica */
+
+td {
+    color: var(--color4);
+}
+
+tr:hover {
+    background-color: var(--color1);
+}
+
+/* ==========================================
+   ESTILOS DE LA VENTANA MODAL (POP-UP)
+   ========================================== */
+.modal-overlay {
+    display: none; /* Oculto por defecto */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(12, 59, 69, 0.4); /* Fondo oscuro semitransparente */
+    backdrop-filter: blur(3px); /* Efecto de desenfoque elegante */
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-box {
+    background: var(--bg-card);
+    width: 90%;
+    max-width: 450px;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 15px 30px rgba(12, 59, 69, 0.2);
+    border: 1px solid var(--color2);
+    text-align: center;
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.active .modal-box {
+    transform: translateY(0);
+}
+
+.modal-box h3 {
+    color: var(--color5);
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.modal-box p {
+    color: var(--color4);
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--color2);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    color: var(--color5);
+    margin-bottom: 25px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.modal-input:focus {
+    border-color: var(--color3);
+    box-shadow: 0 0 0 3px var(--color1);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.modal-btn {
+    padding: 10px 25px;
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--color2);
+    color: var(--color4);
+}
+
+.btn-secondary:hover {
+    background: var(--color1);
+    color: var(--color5);
+}
+
+.btn-primary {
+    background: var(--color4);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--color5);
+    box-shadow: 0 3px 8px rgba(12, 59, 69, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .content {
+        grid-template-columns: 1fr;
+    }
+    .sidebar {
+        border-right: none;
+        border-bottom: 2px solid var(--color1);
+    }
+}

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scraping - Medicamentos | Roemmers - Casasco</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+
+    <!-- ... (código anterior) ... -->
+    
+    <!-- Ventana Modal Personalizada -->
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modal-title">Consulta</h3>
+            <p id="modal-message">Ingrese el valor:</p>
+            <input type="text" id="modal-input" class="modal-input" placeholder="Escriba aquí...">
+            <div class="modal-actions">
+                <button id="modal-cancel" class="modal-btn btn-secondary">Cancelar</button>
+                <button id="modal-accept" class="modal-btn btn-primary">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
+<body>
+
+    <div class="app-container">
+        <!-- Encabezado principal -->
+        <header class="main-header">
+            <h1>SCRAPING - MEDICAMENTOS</h1>
+            <p>— ROEMMERS - CASASCO —</p>
+        </header>
+
+        <main class="content">
+            <!-- Panel Izquierdo: Consultas -->
+            <aside class="sidebar">
+                <h2>CONSULTAS</h2>
+                <div class="button-group">
+                    <button class="query-btn" data-query="1">1. Mostrar todos los productos</button>
+                    <button class="query-btn" data-query="2">2. Buscar por laboratorio</button>
+                    <button class="query-btn" data-query="3">3. Buscar por nombre comercial</button>
+                    <button class="query-btn" data-query="4">4. Buscar por principio activo</button>
+                    <button class="query-btn" data-query="5">5. Buscar por acción terapéutica</button>
+                    <button class="query-btn" data-query="6">6. Filtrar por población</button>
+                    <button class="query-btn" data-query="7">7. Filtrar por categoría</button>
+                    <button class="query-btn" data-query="8">8. 🖼️ Bajar imagen del medicamento</button>
+                    <button class="query-btn btn-salir" id="btn-salir">9. Salir</button>
+                </div>
+            </aside>
+
+            <!-- Panel Derecho: Resultados -->
+            <section class="results-panel">
+                <div class="results-header">
+                    <h3>Número de consulta: <span id="consulta-num">-</span></h3>
+                    <h3>RESULTADOS</h3>
+                </div>
+                <div id="resultados" class="results-content">
+                    <p class="placeholder-text">Seleccione una consulta del panel izquierdo para comenzar...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
