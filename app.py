@@ -1,66 +1,55 @@
-from flask import Flask, jsonify, request, send_from_directory
-from flask_cors import CORS
 from dataclasses import asdict
 
-# Importamos tus clases existentes desde medicamentos.py
+from flask import Flask, jsonify, request, send_from_directory
+from flask_cors import CORS
+
 from medicamentos import Repositorio, ServicioConsultas
 
-# Configuramos Flask para que sirva archivos estáticos (html, css, js) desde la carpeta actual
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
 
-# --- CARGA DE DATOS ---
 print("⏳ Cargando datos desde el CSV o Scraping...")
-repositorio = Repositorio(forzar_refresco=False) 
-medicamentos = repositorio.obtener()
+medicamentos = Repositorio(forzar_refresco=False).obtener()
 servicio = ServicioConsultas(medicamentos)
 print(f"✅ Servidor listo con {len(medicamentos)} productos cargados.")
 
-# --- RUTA PARA LA PÁGINA WEB ---
+BUSCADORES = {
+    '2': servicio.por_laboratorio,
+    '3': servicio.por_comercial,
+    '4': servicio.por_generico,
+    '5': servicio.por_accion,
+    '6': servicio.por_poblacion,
+    '7': servicio.por_categoria,
+}
+
+
 @app.route('/')
 def index():
-    """Muestra el archivo index.html cuando entrás a localhost:5000"""
     return send_from_directory('.', 'index.html')
 
-# --- RUTAS DE LA API ---
 
 @app.route('/api/todos', methods=['GET'])
 def obtener_todos():
-    """Devuelve absolutamente todos los medicamentos (Opción 1)."""
-    lista = servicio.todos()
-    return jsonify([asdict(m) for m in lista])
+    return jsonify([asdict(m) for m in servicio.todos()])
+
 
 @app.route('/api/buscar', methods=['POST'])
 def buscar():
-    """Recibe una opción y un texto, y devuelve los resultados filtrados (Opciones 2 a 7)."""
-    datos = request.json
+    datos = request.json or {}
     opcion = datos.get('opcion')
-    query = datos.get('query', '').strip()
+    query = (datos.get('query') or '').strip()
 
     if not query:
         return jsonify([])
 
-    if opcion == '2':
-        resultados = servicio.por_laboratorio(query)
-    elif opcion == '3':
-        resultados = servicio.por_comercial(query)
-    elif opcion == '4':
-        resultados = servicio.por_generico(query)
-    elif opcion == '5':
-        resultados = servicio.por_accion(query)
-    elif opcion == '6':
-        resultados = servicio.por_poblacion(query)
-    elif opcion == '7':
-        resultados = servicio.por_categoria(query)
-    else:
-        resultados = []
-
+    fn = BUSCADORES.get(opcion)
+    resultados = fn(query) if fn else []
     return jsonify([asdict(m) for m in resultados])
+
 
 @app.route('/api/imagen', methods=['GET'])
 def obtener_imagen():
-    """Busca un medicamento por nombre y devuelve los datos de su imagen (Opción 8)."""
-    nombre = request.args.get('nombre', '').strip()
+    nombre = (request.args.get('nombre') or '').strip()
     if not nombre:
         return jsonify({"error": "Falta el nombre"}), 400
 
@@ -73,10 +62,11 @@ def obtener_imagen():
             return jsonify({
                 "nombre": med.nombre_comercial,
                 "laboratorio": med.laboratorio,
-                "imagen": med.imagen
+                "imagen": med.imagen,
             })
-    
+
     return jsonify({"error": "El medicamento no tiene imagen registrada"}), 404
+
 
 if __name__ == '__main__':
     print("🚀 Iniciando servidor en http://localhost:5000")

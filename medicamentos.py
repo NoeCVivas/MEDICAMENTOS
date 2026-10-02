@@ -29,19 +29,16 @@ except ImportError:
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# ---------------------------------------------------------------------------
-# CONFIGURACIÓN
-# ---------------------------------------------------------------------------
 URL_ROEMMERS_API = "https://roemmers.com.ar/wp-json/wp/v2/producto"
 URL_ROEMMERS_BASE = "https://roemmers.com.ar/producto/"
 URL_CASASCO_LISTADO = "https://www.casasco.com.ar/es/productos"
 CSV_CACHE = "productos_laboratorios.csv"
-FORZAR_REFRESCO = False   # ← poné True una vez para regenerar con imágenes
+FORZAR_REFRESCO = False
 TIMEOUT = 30
 
 HEADERS = {
     "User-Agent": ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
+                   "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
     "Accept-Language": "es-AR,es;q=0.9,en;q=0.8",
 }
 
@@ -52,31 +49,31 @@ CATEGORIAS: dict[str, tuple[str, ...]] = {
     "Ginecología": ("ginecolog", "vaginal", "ovulo", "anticonceptiv", "menopausia",
                     "climaterio", "utero", "endometrio", "candida", "tricomonas"),
     "Pediatría": ("pediatric", "infantil", "ninos", "ninas", "bebe", "bebes",
-                "junior", "kids", "child", "lactante", "suspension", "gotas",
-                "jarabe", "recien nacido"),
+                  "junior", "kids", "child", "lactante", "suspension", "gotas",
+                  "jarabe", "recien nacido"),
     "Analgésico y Antiinflamatorio": ("analgesic", "antiinflamatorio", "dolor",
-                                    "corticoide", "antipiretico", "fiebre"),
+                                      "corticoide", "antipiretico", "fiebre"),
     "Antibiótico": ("antibiotic", "antibacterial", "antimicrobiano", "infeccion",
                     "penicilina", "cefalosporina", "macrolido", "quinolona"),
     "Gastroenterología": ("gastro", "estomago", "digestiv", "antiacido", "ulcera",
-                        "reflujo", "antiemetico", "laxante", "antidiarreico",
-                        "hepato", "colon", "intestino"),
+                          "reflujo", "antiemetico", "laxante", "antidiarreico",
+                          "hepato", "colon", "intestino"),
     "Dermatología": ("dermatolog", "crema", "unguento", "topico", "piel", "acne",
-                    "psoriasis", "micosis", "antifungico"),
+                     "psoriasis", "micosis", "antifungico"),
     "Neumonología": ("respirator", "asma", "bronquial", "bronco", "pulmonar",
-                    "antitusivo", "mucolitico", "expectorante", "inhalador"),
+                     "antitusivo", "mucolitico", "expectorante", "inhalador"),
     "Oftalmología": ("oftalm", "ocular", "ojos", "conjuntivitis", "lagrima"),
     "Neurología y Psiquiatría": ("neurolog", "psiquiatr", "antidepresivo",
-                                "ansiolitico", "antipsicotico", "epilepsia",
-                                "anticonvulsivo", "parkinson", "migrana", "insomnio"),
+                                 "ansiolitico", "antipsicotico", "epilepsia",
+                                 "anticonvulsivo", "parkinson", "migrana", "insomnio"),
     "Endocrinología": ("diabetes", "hipoglucemiante", "antidiabetico", "insulina",
-                    "tiroides", "tiroideo", "hormona"),
+                       "tiroides", "tiroideo", "hormona"),
     "Urología": ("urolog", "prostata", "prostatico", "urinari", "diuretico"),
     "Alergología": ("alergi", "antihistaminico", "antialergico", "rinos"),
     "Vitaminas y Suplementos": ("vitamina", "suplemento", "calcio", "hierro",
                                 "mineral", "oligoelemento"),
     "Otorrinolaringología": ("otico", "oido", "otitis", "nasal", "garganta",
-                            "faringe", "sinusitis"),
+                             "faringe", "sinusitis"),
 }
 
 REGEX_CONCENTRACION = re.compile(r"(\d+[\.,]?\d*\s*(?:MG|G|MCG|UI|ML|%))", re.I)
@@ -85,17 +82,33 @@ REGEX_FORMA = re.compile(
     r"inyectable|polvo|gotas|[oó]vulos?|supositorios?|aerosol|spray|jalea|sobres?)",
     re.I)
 
-# ---------------------------------------------------------------------------
-# UTILIDADES
-# ---------------------------------------------------------------------------
+RUIDO_IMAGEN = (
+    "logo", "icon", "sprite", "placeholder", "favicon",
+    "whatsapp", "facebook", "instagram", "twitter",
+    "share", "social", "default-", "no-image", "sin-imagen",
+)
+
+ETIQUETAS_CASASCO = {
+    "principio": "principio activo",
+    "accion": "accion terapeutica",
+    "presentaciones": "presentacion",
+    "descripcion": "descripcion",
+}
+
+EXTENSIONES_IMG = (".jpg", ".jpeg", ".png", ".webp", ".gif")
+
+
 def limpiar(texto: Optional[str]) -> str:
     return re.sub(r"\s+", " ", texto or "").strip()
 
 
 def normalizar(texto) -> str:
-    """Minúsculas + sin acentos. Base de toda búsqueda case-insensitive."""
     t = unicodedata.normalize("NFKD", str(texto or "").lower())
     return "".join(c for c in t if not unicodedata.combining(c))
+
+
+def limpiar_pantalla() -> None:
+    os.system("cls" if os.name == "nt" else "clear")
 
 
 def extraer_concentracion(texto: str) -> str:
@@ -109,57 +122,39 @@ def inferir_forma(texto: str) -> str:
 
 
 def _url_imagen_valida(url: str) -> bool:
-    """Descarta URLs que claramente no son imágenes de producto
-    (logos, banners, placeholders, redes sociales, imágenes de compartir)."""
     if not url or url.startswith("data:"):
         return False
-    low = url.lower()
-    ruido = ("logo", "icon", "sprite", "placeholder", "favicon",
-            "whatsapp", "facebook", "instagram", "twitter",
-            "share", "social", "default-", "no-image", "sin-imagen")
-    return not any(x in low for x in ruido)
+    return not any(x in url.lower() for x in RUIDO_IMAGEN)
+
+
+def _absolutizar(url: str, base_url: str = "") -> str:
+    url = (url or "").strip()
+    if not url:
+        return ""
+    if base_url and not url.startswith(("http://", "https://", "//")):
+        url = urljoin(base_url, url)
+    if url.startswith("//"):
+        url = "https:" + url
+    return url
 
 
 def extraer_imagen(soup: BeautifulSoup, base_url: str = "") -> str:
-    
-
-    def _abs(url: str) -> str:
-        url = (url or "").strip()
-        if not url:
-            return ""
-        if base_url and not url.startswith(("http://", "https://", "//")):
-            url = urljoin(base_url, url)
-        if url.startswith("//"):
-            url = "https:" + url
-        return url
-
-    # 1) Meta tags
     for prop in ("og:image", "twitter:image"):
         tag = (soup.find("meta", property=prop)
-            or soup.find("meta", attrs={"name": prop}))
+               or soup.find("meta", attrs={"name": prop}))
         if tag and tag.get("content"):
-            candidata = _abs(tag["content"])
+            candidata = _absolutizar(tag["content"], base_url)
             if _url_imagen_valida(candidata):
                 return candidata
 
-    descartar = ("logo", "icon", "sprite", "placeholder", "banner",
-                "favicon", "whatsapp", "facebook", "instagram", "twitter",
-                "share", "social", "no-image", "sin-imagen")
-
     candidatas: list[tuple[int, str]] = []
     for img in soup.select("img"):
-        # Priorizar atributos lazy-load reales por sobre src
-        src = ""
-        for attr in ("data-src", "data-lazy-src", "data-original", "src"):
-            v = (img.get(attr) or "").strip()
-            if v and not v.startswith("data:"):
-                src = v
-                break
-        if not src:
-            continue
-
-        low = src.lower()
-        if any(x in low for x in descartar):
+        src = next(
+            (v.strip() for attr in ("data-src", "data-lazy-src", "data-original", "src")
+             if (v := (img.get(attr) or "").strip()) and not v.startswith("data:")),
+            "",
+        )
+        if not src or any(x in src.lower() for x in RUIDO_IMAGEN):
             continue
 
         clases_img = " ".join(img.get("class") or [])
@@ -167,27 +162,26 @@ def extraer_imagen(soup: BeautifulSoup, base_url: str = "") -> str:
         clases_padre = " ".join(padre.get("class") or []) if padre else ""
         contexto = f"{clases_img} {clases_padre}".lower()
 
-        peso = 0
         if any(k in contexto for k in ("product", "producto",
                                        "field--name-field-imagen",
                                        "field--item", "slide", "galeria")):
             peso = 3
-        elif any(k in low for k in ("sites/default/files", "/files/",
-                                     "upload", "product")):
+        elif any(k in src.lower() for k in ("sites/default/files", "/files/",
+                                            "upload", "product")):
             peso = 2
-        elif img.get("width") and img.get("width").isdigit() and int(img["width"]) >= 200:
+        elif img.get("width", "").isdigit() and int(img["width"]) >= 200:
             peso = 1
+        else:
+            peso = 0
 
-        candidatas.append((peso, _abs(src)))
+        candidatas.append((peso, _absolutizar(src, base_url)))
 
     if not candidatas:
         return ""
     candidatas.sort(key=lambda x: -x[0])
     return candidatas[0][1].strip()
 
-# ---------------------------------------------------------------------------
-# MODELO
-# ---------------------------------------------------------------------------
+
 @dataclass
 class Medicamento:
     laboratorio: str = ""
@@ -207,7 +201,6 @@ class Medicamento:
         return cls(**{k: (v or "") for k, v in fila.items() if k in validos})
 
     def clasificar(self) -> None:
-        """Completa poblacion y categoria_terapeutica a partir del texto."""
         texto = normalizar(" ".join((
             self.nombre_comercial, self.nombre_generico, self.accion_terapeutica,
             self.presentaciones, self.forma_farmaceutica,
@@ -216,11 +209,10 @@ class Medicamento:
         self.poblacion = "Pediátrico" if any(k in texto for k in ped) else "Adultos"
         self.categoria_terapeutica = next(
             (cat for cat, keys in CATEGORIAS.items() if any(k in texto for k in keys)),
-            "General")
+            "General",
+        )
 
-# ---------------------------------------------------------------------------
-# SCRAPERS
-# ---------------------------------------------------------------------------
+
 def crear_driver() -> webdriver.Chrome:
     opts = Options()
     for arg in ("--headless=new", "--no-sandbox", "--disable-dev-shm-usage",
@@ -234,7 +226,6 @@ def crear_driver() -> webdriver.Chrome:
 
 
 class BaseScraper:
-
     LAB = ""
 
     def __init__(self) -> None:
@@ -260,9 +251,14 @@ class BaseScraper:
         r.encoding = r.apparent_encoding or r.encoding
         return BeautifulSoup(r.text, "html.parser")
 
+    def driver(self) -> webdriver.Chrome:
+        if self._driver is None:
+            print(f"  → Iniciando navegador ({self.LAB})...")
+            self._driver = crear_driver()
+        return self._driver
+
     def soup_selenium(self, url: str, espera_css: str = "img",
-                    pausa: float = 0.6) -> Optional[BeautifulSoup]:
-        """Carga la URL con Selenium (ejecuta JS) y devuelve el DOM parseado."""
+                      pausa: float = 0.6) -> Optional[BeautifulSoup]:
         driver = self.driver()
         try:
             driver.get(url)
@@ -271,18 +267,11 @@ class BaseScraper:
                     EC.presence_of_element_located((By.CSS_SELECTOR, espera_css)))
             except Exception:
                 pass
-            # Dar tiempo al lazy-load
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight/2);")
             time.sleep(pausa)
             return BeautifulSoup(driver.page_source, "html.parser")
         except Exception:
             return None
-
-    def driver(self) -> webdriver.Chrome:
-        if self._driver is None:
-            print(f"  → Iniciando navegador ({self.LAB})...")
-            self._driver = crear_driver()
-        return self._driver
 
     def cerrar(self) -> None:
         if self._driver:
@@ -293,16 +282,15 @@ class BaseScraper:
             self._driver = None
 
     def armar(self, **kwargs) -> Medicamento:
-        """Crea un Medicamento del laboratorio actual y lo clasifica."""
         med = Medicamento(laboratorio=self.LAB, **kwargs)
         med.clasificar()
         return med
 
     def parsear_lote(self, items: Iterable, parser: Callable,
-                    pausa: float = 0.15) -> list[Medicamento]:
+                     pausa: float = 0.15) -> list[Medicamento]:
         items = list(items)
         print("  → Visitando fichas...")
-        out = []
+        out: list[Medicamento] = []
         for i, item in enumerate(items, 1):
             if i % 40 == 0:
                 print(f"     ...{i}/{len(items)}")
@@ -312,7 +300,6 @@ class BaseScraper:
 
 
 class ScraperRoemmers(BaseScraper):
-
     LAB = "Roemmers"
 
     def obtener_productos(self) -> list[Medicamento]:
@@ -325,14 +312,14 @@ class ScraperRoemmers(BaseScraper):
         con_pa = sum(1 for m in out if m.nombre_generico)
         con_img = sum(1 for m in out if m.imagen)
         print(f"  ✔ {self.LAB}: {len(out)} productos "
-            f"(principio activo: {con_pa}/{len(out)}, imágenes: {con_img}/{len(out)})")
+              f"(principio activo: {con_pa}/{len(out)}, imágenes: {con_img}/{len(out)})")
         return out
 
     def _listar(self) -> list[dict]:
-        items = []
+        items: list[dict] = []
         for pagina in range(1, 41):
             url = (f"{URL_ROEMMERS_API}?per_page=100&page={pagina}"
-                f"&_fields=id,slug,title")
+                   f"&_fields=id,slug,title")
             print(f"  → API página {pagina}...")
             r = self.get(url)
             if r is None or r.status_code != 200:
@@ -344,7 +331,7 @@ class ScraperRoemmers(BaseScraper):
             if not isinstance(data, list) or not data:
                 break
             items += [{"slug": it["slug"], "title": limpiar(it["title"]["rendered"])}
-                    for it in data]
+                      for it in data]
             if pagina >= int(r.headers.get("X-WP-TotalPages", "1")):
                 break
             time.sleep(0.2)
@@ -355,10 +342,12 @@ class ScraperRoemmers(BaseScraper):
         soup = self.soup(url)
         if soup is None:
             return self.armar(nombre_comercial=item["title"])
+
         imagen = extraer_imagen(soup, base_url=url)
         for tag in soup(["script", "style", "nav", "footer", "header", "noscript"]):
             tag.decompose()
         texto = re.sub(r"\s+", " ", soup.get_text(separator=" ")).strip()
+
         med = self._parsear_texto(texto, item["title"])
         med.imagen = imagen
         return med
@@ -375,17 +364,18 @@ class ScraperRoemmers(BaseScraper):
         accion = extraer(
             r"ACCI[OÓ]N\s*(?:TERAP[EÉ]UTICA)?\s*:?\s*(.+?)"
             r"(?=\s*(PRESENTACIONES|Principio\s*Activo|$))")
+
         return self.armar(
             nombre_comercial=nombre,
             nombre_generico=principio,
             concentracion=extraer_concentracion(principio),
             accion_terapeutica=accion,
             presentaciones=presentaciones,
-            forma_farmaceutica=inferir_forma(f"{presentaciones} {principio}"))
+            forma_farmaceutica=inferir_forma(f"{presentaciones} {principio}"),
+        )
 
 
 class ScraperCasasco(BaseScraper):
-    """Listado paginado con Selenium + fichas por requests (con fallback a Selenium)."""
     LAB = "Casasco"
 
     def obtener_productos(self) -> list[Medicamento]:
@@ -395,11 +385,14 @@ class ScraperCasasco(BaseScraper):
             print(f"  → {len(productos)} productos detectados.")
             if not productos:
                 return []
-            out = self.parsear_lote(productos.items(),
-                                    lambda kv: self._parsear(*kv), pausa=0.15)
+            out = self.parsear_lote(
+                productos.items(),
+                lambda kv: self._parsear(*kv),
+                pausa=0.15,
+            )
             con_img = sum(1 for m in out if m.imagen)
             print(f"  ✔ {self.LAB}: {len(out)} productos "
-                f"(imágenes: {con_img}/{len(out)})")
+                  f"(imágenes: {con_img}/{len(out)})")
             return out
         finally:
             self.cerrar()
@@ -408,6 +401,7 @@ class ScraperCasasco(BaseScraper):
         driver = self.driver()
         productos: dict[str, str] = {}
         vacias = 0
+
         for pagina in range(1, 51):
             print(f"  → Página {pagina}...")
             try:
@@ -416,9 +410,9 @@ class ScraperCasasco(BaseScraper):
                     (By.CSS_SELECTOR, "a[href*='/producto/']")))
             except Exception:
                 time.sleep(2)
-                driver.execute_script(
-                    "window.scrollTo(0, document.body.scrollHeight);")
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 time.sleep(1)
+
             nuevos = 0
             for a in driver.find_elements(By.CSS_SELECTOR, "a[href*='/producto/']"):
                 href = (a.get_attribute("href") or "").split("#")[0].split("?")[0]
@@ -427,6 +421,7 @@ class ScraperCasasco(BaseScraper):
                         and href not in productos):
                     productos[href] = nombre
                     nuevos += 1
+
             print(f"     {nuevos} nuevos.")
             if nuevos == 0:
                 vacias += 1
@@ -435,14 +430,13 @@ class ScraperCasasco(BaseScraper):
             else:
                 vacias = 0
             time.sleep(0.4)
+
         return productos
 
     def _parsear(self, url: str, nombre: str) -> Medicamento:
-        # 1) Intento rápido con requests
         soup = self.soup(url)
         imagen = extraer_imagen(soup, base_url=url) if soup else ""
 
-        # 2) Si no hay imagen, reintento con Selenium (el sitio carga JS)
         if not imagen:
             soup_js = self.soup_selenium(url)
             if soup_js is not None:
@@ -460,23 +454,24 @@ class ScraperCasasco(BaseScraper):
             accion_terapeutica=d.get("accion", ""),
             presentaciones=d.get("presentaciones", ""),
             forma_farmaceutica=inferir_forma(
-                f"{d.get('descripcion', '')} {d.get('presentaciones', '')}"))
+                f"{d.get('descripcion', '')} {d.get('presentaciones', '')}"),
+        )
         med.imagen = imagen
         return med
 
     @staticmethod
     def _extraer_datos(soup: BeautifulSoup) -> dict:
-        etiquetas = {"principio": "principio activo", "accion": "accion terapeutica",
-                    "presentaciones": "presentacion", "descripcion": "descripcion"}
         datos: dict = {}
         for block in soup.select("div.product-block"):
             label = block.select_one("h6.spec-label")
             value = block.select_one(".field--item")
-            if label and value:
-                campo = normalizar(label.get_text())
-                for clave, etiqueta in etiquetas.items():
-                    if etiqueta in campo:
-                        datos[clave] = limpiar(value.get_text())
+            if not (label and value):
+                continue
+            campo = normalizar(label.get_text())
+            for clave, etiqueta in ETIQUETAS_CASASCO.items():
+                if etiqueta in campo:
+                    datos[clave] = limpiar(value.get_text())
+
         if not datos.get("principio"):
             for tag in soup.find_all(["h2", "h3", "h4", "h5", "h6", "strong"]):
                 etiqueta = normalizar(tag.get_text())
@@ -489,11 +484,8 @@ class ScraperCasasco(BaseScraper):
                     datos["accion"] = limpiar(sib.get_text())
         return datos
 
-# ---------------------------------------------------------------------------
-# REPOSITORIO
-# ---------------------------------------------------------------------------
-class Repositorio:
 
+class Repositorio:
     def __init__(self, forzar_refresco: bool = FORZAR_REFRESCO) -> None:
         self._forzar = forzar_refresco
 
@@ -502,12 +494,14 @@ class Repositorio:
             filas = self._cargar_csv()
             if filas:
                 return [Medicamento.desde_fila(f) for f in filas]
+
         print(f"\n{'=' * 60}\nDESCARGANDO PRODUCTOS\n{'=' * 60}")
         medicamentos = (ScraperRoemmers().obtener_productos()
                         + ScraperCasasco().obtener_productos())
         if not medicamentos:
             print("❌ No se pudieron obtener productos.")
             return []
+
         print(f"\n✔ Total de productos: {len(medicamentos)}")
         self._guardar_csv(medicamentos)
         return medicamentos
@@ -533,10 +527,8 @@ class Repositorio:
             w.writerows(m.__dict__ for m in medicamentos)
         print(f"✔ Guardado en {CSV_CACHE}")
 
-# SERVICIO DE CONSULTAS
-class ServicioConsultas:
-    """Búsquedas case/acento-insensibles + filtros por categoría."""
 
+class ServicioConsultas:
     def __init__(self, medicamentos: list[Medicamento]) -> None:
         self._meds = medicamentos
 
@@ -550,19 +542,19 @@ class ServicioConsultas:
         return [m for m in self._meds
                 if any(patron.search(normalizar(getattr(m, c, ""))) for c in campos)]
 
-    def por_laboratorio(self, t): return self._filtrar(t, "laboratorio")
-    def por_comercial(self, t):   return self._filtrar(t, "nombre_comercial")
-    def por_generico(self, t):    return self._filtrar(t, "nombre_generico")
-    def por_accion(self, t):      return self._filtrar(t, "accion_terapeutica")
-    def por_poblacion(self, t):   return self._filtrar(t, "poblacion")
-    def por_categoria(self, t):   return self._filtrar(t, "categoria_terapeutica")
+    def por_laboratorio(self, t):  return self._filtrar(t, "laboratorio")
+    def por_comercial(self, t):    return self._filtrar(t, "nombre_comercial")
+    def por_generico(self, t):     return self._filtrar(t, "nombre_generico")
+    def por_accion(self, t):       return self._filtrar(t, "accion_terapeutica")
+    def por_poblacion(self, t):    return self._filtrar(t, "poblacion")
+    def por_categoria(self, t):    return self._filtrar(t, "categoria_terapeutica")
 
     def laboratorios(self) -> list[str]:
         return sorted({m.laboratorio for m in self._meds if m.laboratorio})
 
     def categorias(self) -> list[str]:
         return sorted({m.categoria_terapeutica for m in self._meds
-                    if m.categoria_terapeutica})
+                       if m.categoria_terapeutica})
 
     def conteo_por_categoria(self) -> dict[str, int]:
         conteo: dict[str, int] = {}
@@ -578,9 +570,7 @@ class ServicioConsultas:
         return [mapa[k] for k in difflib.get_close_matches(
             normalizar(texto), list(mapa), n=n, cutoff=0.5)]
 
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
+
 class CLI:
     def __init__(self, servicio: ServicioConsultas) -> None:
         self._s = servicio
@@ -591,11 +581,10 @@ class CLI:
             "4": ("Buscar por principio activo", self._por_generico),
             "5": ("Buscar por acción terapéutica", self._por_accion),
             "6": ("Filtrar por población (pediátrico/adultos)", self._por_poblacion),
-            "7": ("🩺 Filtrar por categoría (cardiológicos, ginecológicos, etc.)",
-                self._por_categoria),
-            "8": ("🖼️  Bajar imagen del medicamento (buscar por nombre)",
-                self._bajar_imagen),
-            "9": ("Salir", self._salir),
+            "7": ("🩺 Filtrar por categoría", self._por_categoria),
+            "8": ("🖼️  Bajar imagen del medicamento", self._bajar_imagen),
+            "9": ("🧹 Borrar pantalla (empezar consulta nueva)", self._borrar),
+            "0": ("Salir", self._salir),
         }
 
     def ejecutar(self) -> None:
@@ -606,7 +595,7 @@ class CLI:
                 print("Opción inválida.")
                 continue
             self._opciones[op][1]()
-            if op == "9":
+            if op == "0":
                 break
 
     def _menu(self) -> None:
@@ -634,6 +623,19 @@ class CLI:
     def _pedir(self, prompt: str, fn: Callable, criterio: str) -> None:
         t = input(prompt).strip()
         self._mostrar(fn(t), f"{criterio} '{t}'")
+
+    def _seleccionar(self, resultados: list[Medicamento]) -> Optional[Medicamento]:
+        if not resultados:
+            return None
+        if len(resultados) == 1:
+            return resultados[0]
+        print(f"\n🔍 {len(resultados)} coincidencias:")
+        for i, m in enumerate(resultados, 1):
+            print(f"  {i:>2}. [{m.laboratorio}] {m.nombre_comercial}")
+        sel = input("\nElegí un número (Enter = primera): ").strip()
+        if sel.isdigit() and 1 <= int(sel) <= len(resultados):
+            return resultados[int(sel) - 1]
+        return resultados[0]
 
     def _todos(self):
         self._mostrar(self._s.todos(), "todos los productos")
@@ -683,59 +685,37 @@ class CLI:
             t = categorias[int(t) - 1]
         self._mostrar(self._s.por_categoria(t), f"categoría '{t}'")
 
-    # ------------------------------------------------------------------
-    # OPCIÓN 8: bajar imagen del medicamento por nombre
-    # ------------------------------------------------------------------
     def _bajar_imagen(self):
         t = input("Nombre del medicamento: ").strip()
         if not t:
             return
+
         resultados = self._s.por_comercial(t)
         if not resultados:
             print(f"\n❌ No se encontró '{t}'.")
             return
 
-        if len(resultados) > 1:
-            print(f"\n🔍 {len(resultados)} coincidencias:")
-            for i, m in enumerate(resultados, 1):
-                print(f"  {i:>2}. [{m.laboratorio}] {m.nombre_comercial}")
-            sel = input("\nElegí un número (Enter = primera): ").strip()
-            if sel.isdigit() and 1 <= int(sel) <= len(resultados):
-                med = resultados[int(sel) - 1]
-            else:
-                med = resultados[0]
-        else:
-            med = resultados[0]
+        med = self._seleccionar(resultados)
+        if med is None:
+            return
 
         if not med.imagen:
             print(f"\n⚠ '{med.nombre_comercial}' ({med.laboratorio}) "
-                f"no tiene imagen registrada.")
+                  f"no tiene imagen registrada.")
             print("   Probá con FORZAR_REFRESCO = True para regenerar el CSV.")
             return
 
-        # Red de seguridad: normalizar por si el CSV guardó una URL relativa
-        url_imagen = med.imagen
-        if not url_imagen.startswith(("http://", "https://")):
-            if med.laboratorio == "Casasco":
-                url_imagen = urljoin("https://www.casasco.com.ar/", url_imagen)
-            elif med.laboratorio == "Roemmers":
-                url_imagen = urljoin("https://roemmers.com.ar/", url_imagen)
-
+        url_imagen = self._resolver_url_imagen(med)
         print(f"\n🖼️  {med.nombre_comercial} [{med.laboratorio}]")
         print(f"   URL: {url_imagen}")
 
         try:
             r = requests.get(url_imagen, timeout=TIMEOUT,
-                            verify=certifi.where(), headers=HEADERS)
+                             verify=certifi.where(), headers=HEADERS)
             if r.status_code != 200:
                 print(f"   ❌ Error HTTP {r.status_code}")
                 return
-            ext = os.path.splitext(url_imagen.split("?")[0])[1].lower()
-            if ext not in (".jpg", ".jpeg", ".png", ".webp", ".gif"):
-                ext = ".jpg"
-            base = re.sub(r"[^\w\-]+", "_",
-                        f"{med.laboratorio}_{med.nombre_comercial}").strip("_")
-            nombre_archivo = f"{base}{ext}"
+            nombre_archivo = self._nombre_archivo_imagen(med, url_imagen)
             with open(nombre_archivo, "wb") as f:
                 f.write(r.content)
             print(f"   ✔ Imagen guardada: {nombre_archivo}")
@@ -744,12 +724,34 @@ class CLI:
         except OSError as e:
             print(f"   ❌ Error al escribir el archivo: {e}")
 
+    @staticmethod
+    def _resolver_url_imagen(med: Medicamento) -> str:
+        url_imagen = med.imagen
+        if url_imagen.startswith(("http://", "https://")):
+            return url_imagen
+        if med.laboratorio == "Casasco":
+            return urljoin("https://www.casasco.com.ar/", url_imagen)
+        if med.laboratorio == "Roemmers":
+            return urljoin("https://roemmers.com.ar/", url_imagen)
+        return url_imagen
+
+    @staticmethod
+    def _nombre_archivo_imagen(med: Medicamento, url_imagen: str) -> str:
+        ext = os.path.splitext(url_imagen.split("?")[0])[1].lower()
+        if ext not in EXTENSIONES_IMG:
+            ext = ".jpg"
+        base = re.sub(r"[^\w\-]+", "_",
+                      f"{med.laboratorio}_{med.nombre_comercial}").strip("_")
+        return f"{base}{ext}"
+
+    def _borrar(self):
+        limpiar_pantalla()
+        print("🧹 Pantalla borrada. Listo para una nueva consulta.\n")
+
     def _salir(self):
         print("👋 Saliendo...")
 
-# ---------------------------------------------------------------------------
-# MAIN
-# ---------------------------------------------------------------------------
+
 def main() -> None:
     medicamentos = Repositorio(forzar_refresco=FORZAR_REFRESCO).obtener()
     print(f"\nDatos cargados → productos: {len(medicamentos)}")
