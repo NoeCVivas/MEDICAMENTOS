@@ -47,6 +47,31 @@ def buscar():
     return jsonify([asdict(m) for m in resultados])
 
 
+@app.route('/api/opciones/<tipo>', methods=['GET'])
+def obtener_opciones(tipo):
+    """Devuelve listas de opciones para los modales clickeables."""
+    if tipo == 'laboratorios':
+        return jsonify([
+            {"valor": lab, "label": lab}
+            for lab in servicio.laboratorios()
+        ])
+
+    if tipo == 'categorias':
+        conteo = servicio.conteo_por_categoria()
+        return jsonify([
+            {"valor": cat, "label": f"{cat}  ({n})"}
+            for cat, n in conteo.items()
+        ])
+
+    if tipo == 'poblaciones':
+        return jsonify([
+            {"valor": "Pediátrico", "label": "Pediátrico"},
+            {"valor": "Adultos",     "label": "Adultos"},
+        ])
+
+    return jsonify([])
+
+
 @app.route('/api/imagen', methods=['GET'])
 def obtener_imagen():
     nombre = (request.args.get('nombre') or '').strip()

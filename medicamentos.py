@@ -45,35 +45,78 @@ HEADERS = {
 CATEGORIAS: dict[str, tuple[str, ...]] = {
     "Cardiología": ("cardio", "corazon", "cardiaco", "hipertension", "antihipertensivo",
                     "anticoagulante", "arritmia", "angina", "vasodilatador",
-                    "betabloqueante", "estatin", "colesterol", "triglicerido"),
+                    "betabloqueante", "estatin", "colesterol", "triglicerido",
+                    "enalapril", "losartan", "valsartan", "amlodipina",
+                    "atenolol", "propranolol", "carvedilol", "clopidogrel",
+                    "aspirina", "warfarina", "rivaroxaban", "furosemida"),
     "Ginecología": ("ginecolog", "vaginal", "ovulo", "anticonceptiv", "menopausia",
-                    "climaterio", "utero", "endometrio", "candida", "tricomonas"),
+                    "climaterio", "utero", "endometrio", "candida", "tricomonas",
+                    "clotrimazol", "miconazol", "fluconazol", "metronidazol",
+                    "estrogeno", "progesterona", "levonorgestrel"),
     "Pediatría": ("pediatric", "infantil", "ninos", "ninas", "bebe", "bebes",
                   "junior", "kids", "child", "lactante", "suspension", "gotas",
                   "jarabe", "recien nacido"),
     "Analgésico y Antiinflamatorio": ("analgesic", "antiinflamatorio", "dolor",
-                                      "corticoide", "antipiretico", "fiebre"),
+                                      "corticoide", "antipiretico", "fiebre",
+                                      "ibuprofeno", "paracetamol", "diclofenac",
+                                      "ketorolac", "naproxeno", "aspirina",
+                                      "dexametasona", "prednisona", "prednisolona",
+                                      "betametasona", "dipirona", "tramadol"),
     "Antibiótico": ("antibiotic", "antibacterial", "antimicrobiano", "infeccion",
-                    "penicilina", "cefalosporina", "macrolido", "quinolona"),
+                    "penicilina", "cefalosporina", "macrolido", "quinolona",
+                    "amoxicilina", "ampicilina", "azitromicina", "claritromicina",
+                    "eritromicina", "ciprofloxacino", "levofloxacino",
+                    "cefalexina", "ceftriaxona", "doxiciclina", "clindamicina",
+                    "gentamicina", "tobramicina"),
     "Gastroenterología": ("gastro", "estomago", "digestiv", "antiacido", "ulcera",
                           "reflujo", "antiemetico", "laxante", "antidiarreico",
-                          "hepato", "colon", "intestino"),
+                          "hepato", "colon", "intestino", "omeprazol",
+                          "pantoprazol", "esomeprazol", "ranitidina",
+                          "domperidona", "metoclopramida", "loperamida",
+                          "bismuto", "simeticona"),
     "Dermatología": ("dermatolog", "crema", "unguento", "topico", "piel", "acne",
-                     "psoriasis", "micosis", "antifungico"),
+                     "psoriasis", "micosis", "antifungico", "clotrimazol",
+                     "miconazol", "ketoconazol", "terbinafina", "permetrina",
+                     "isotretinoina", "acido retinoico", "hidrocortisona"),
     "Neumonología": ("respirator", "asma", "bronquial", "bronco", "pulmonar",
-                     "antitusivo", "mucolitico", "expectorante", "inhalador"),
-    "Oftalmología": ("oftalm", "ocular", "ojos", "conjuntivitis", "lagrima"),
+                     "antitusivo", "mucolitico", "expectorante", "inhalador",
+                     "salbutamol", "budesonide", "montelukast", "ambroxol",
+                     "dextrometorfano", "codeina", "fenoterol", "ipratropio"),
+    "Oftalmología": ("oftalm", "ocular", "ojos", "conjuntivitis", "lagrima",
+                     "colirio", "lagrimal", "timolol", "latanoprost",
+                     "travoprost", "bimatoprost", "dorzolamida", "brimonidina",
+                     "pilocarpina", "tropicamida", "fenilefrina oftalmic",
+                     "ketorolac oftalmic", "diclofenac oftalmic",
+                     "ciprofloxacino oftalmic", "tobramicina oftalmic",
+                     "prednisolona oftalmic", "dexametasona oftalmic",
+                     "lubricante ocular", "solucion oftalmica"),
     "Neurología y Psiquiatría": ("neurolog", "psiquiatr", "antidepresivo",
                                  "ansiolitico", "antipsicotico", "epilepsia",
-                                 "anticonvulsivo", "parkinson", "migrana", "insomnio"),
+                                 "anticonvulsivo", "parkinson", "migrana", "insomnio",
+                                 "sertralina", "fluoxetina", "paroxetina",
+                                 "escitalopram", "clonazepam", "alprazolam",
+                                 "diazepam", "lorazepam", "quetiapina",
+                                 "risperidona", "olanzapina", "valproato",
+                                 "carbamazepina", "levetiracetam", "sumatriptan"),
     "Endocrinología": ("diabetes", "hipoglucemiante", "antidiabetico", "insulina",
-                       "tiroides", "tiroideo", "hormona"),
-    "Urología": ("urolog", "prostata", "prostatico", "urinari", "diuretico"),
-    "Alergología": ("alergi", "antihistaminico", "antialergico", "rinos"),
+                       "tiroides", "tiroideo", "hormona", "metformina",
+                       "glibenclamida", "glimepirida", "sitagliptina",
+                       "levotiroxina", "propiltiouracilo", "prednisona"),
+    "Urología": ("urolog", "prostata", "prostatico", "urinari", "diuretico",
+                 "tamsulosina", "finasteride", "dutasteride", "sildenafil",
+                 "tadalafil", "solifenacina", "oxibutinina"),
+    "Alergología": ("alergi", "antihistaminico", "antialergico", "rinos",
+                    "loratadina", "cetirizina", "desloratadina",
+                    "fexofenadina", "clorfeniramina", "difenhidramina",
+                    "montelukast"),
     "Vitaminas y Suplementos": ("vitamina", "suplemento", "calcio", "hierro",
-                                "mineral", "oligoelemento"),
+                                "mineral", "oligoelemento", "acido folico",
+                                "complejo b", "vitamina c", "vitamina d",
+                                "vitamina e", "vitamina k", "multivitaminico",
+                                "zinc", "magnesio", "potasio", "omega"),
     "Otorrinolaringología": ("otico", "oido", "otitis", "nasal", "garganta",
-                             "faringe", "sinusitis"),
+                             "faringe", "sinusitis", "xilometazolina",
+                             "oximetazolina", "neomicina", "benzocaina"),
 }
 
 REGEX_CONCENTRACION = re.compile(r"(\d+[\.,]?\d*\s*(?:MG|G|MCG|UI|ML|%))", re.I)
@@ -97,9 +140,43 @@ ETIQUETAS_CASASCO = {
 
 EXTENSIONES_IMG = (".jpg", ".jpeg", ".png", ".webp", ".gif")
 
+SEPARADOR_CAT = " / "
+
+# ============================================================
+# Marcadores de ruido que aparecen DESPUÉS de la acción
+# terapéutica real en las fichas de Roemmers. Al encontrar
+# el primero de ellos, cortamos el texto.
+# ============================================================
+CORTES_ACCION = (
+    "PROSPECTO",
+    "Fray Justo Sarmiento",
+    "Información Fray",
+    "Mapa del sitio",
+    "Copyright",
+    "Todos los derechos",
+    "Productos relacionados",
+)
+
 
 def limpiar(texto: Optional[str]) -> str:
     return re.sub(r"\s+", " ", texto or "").strip()
+
+
+def limpiar_accion(texto: str) -> str:
+    """Recorta la acción terapéutica en el primer marcador de ruido.
+
+    Ejemplo:
+        'TERAPEÚTICA Antiepiléptico PROSPECTO Descargar Descargar...'
+        → 'TERAPEÚTICA Antiepiléptico'
+    """
+    if not texto:
+        return ""
+    t = texto
+    posiciones = [t.find(m) for m in CORTES_ACCION if t.find(m) != -1]
+    if posiciones:
+        t = t[:min(posiciones)]
+    t = re.sub(r"[\s,;.\-–—]+$", "", t).strip()
+    return limpiar(t)
 
 
 def normalizar(texto) -> str:
@@ -198,7 +275,11 @@ class Medicamento:
     @classmethod
     def desde_fila(cls, fila: dict) -> "Medicamento":
         validos = {f.name for f in dc_fields(cls)}
-        return cls(**{k: (v or "") for k, v in fila.items() if k in validos})
+        datos = {k: (v or "") for k, v in fila.items() if k in validos}
+        # Limpiar acción terapéutica al cargar del CSV cacheado
+        if "accion_terapeutica" in datos:
+            datos["accion_terapeutica"] = limpiar_accion(datos["accion_terapeutica"])
+        return cls(**datos)
 
     def clasificar(self) -> None:
         texto = normalizar(" ".join((
@@ -207,10 +288,19 @@ class Medicamento:
         )))
         ped = CATEGORIAS["Pediatría"]
         self.poblacion = "Pediátrico" if any(k in texto for k in ped) else "Adultos"
-        self.categoria_terapeutica = next(
-            (cat for cat, keys in CATEGORIAS.items() if any(k in texto for k in keys)),
-            "General",
+
+        # Acumular TODAS las categorías que coincidan (no sólo la primera)
+        coincidencias = [
+            cat for cat, keys in CATEGORIAS.items()
+            if any(k in texto for k in keys)
+        ]
+        self.categoria_terapeutica = (
+            SEPARADOR_CAT.join(coincidencias) if coincidencias else "General"
         )
+
+    def categorias_lista(self) -> list[str]:
+        return [c.strip() for c in (self.categoria_terapeutica or "").split(SEPARADOR_CAT)
+                if c.strip()]
 
 
 def crear_driver() -> webdriver.Chrome:
@@ -361,9 +451,10 @@ class ScraperRoemmers(BaseScraper):
             r"Principio\s*Activo\s*:?\s*(.+?)(?=\s*(PRESENTACIONES|ACCI[OÓ]N|$))")
         presentaciones = extraer(
             r"PRESENTACIONES\s*:?\s*(.+?)(?=\s*(ACCI[OÓ]N|Principio|$))")
-        accion = extraer(
+        # Ahora también cortamos en PROSPECTO (y demás ruido) gracias a limpiar_accion
+        accion = limpiar_accion(extraer(
             r"ACCI[OÓ]N\s*(?:TERAP[EÉ]UTICA)?\s*:?\s*(.+?)"
-            r"(?=\s*(PRESENTACIONES|Principio\s*Activo|$))")
+            r"(?=\s*(PROSPECTO|PRESENTACIONES|Principio\s*Activo|$))"))
 
         return self.armar(
             nombre_comercial=nombre,
@@ -451,7 +542,7 @@ class ScraperCasasco(BaseScraper):
             nombre_comercial=nombre,
             nombre_generico=d.get("principio", ""),
             concentracion=extraer_concentracion(d.get("principio", "")),
-            accion_terapeutica=d.get("accion", ""),
+            accion_terapeutica=limpiar_accion(d.get("accion", "")),
             presentaciones=d.get("presentaciones", ""),
             forma_farmaceutica=inferir_forma(
                 f"{d.get('descripcion', '')} {d.get('presentaciones', '')}"),
@@ -553,14 +644,17 @@ class ServicioConsultas:
         return sorted({m.laboratorio for m in self._meds if m.laboratorio})
 
     def categorias(self) -> list[str]:
-        return sorted({m.categoria_terapeutica for m in self._meds
-                       if m.categoria_terapeutica})
+        """Devuelve todas las categorías individuales (descompone 'A / B')."""
+        cats: set[str] = set()
+        for m in self._meds:
+            cats.update(m.categorias_lista())
+        return sorted(cats)
 
     def conteo_por_categoria(self) -> dict[str, int]:
+        """Cuenta por categoría individual (no por combinación)."""
         conteo: dict[str, int] = {}
         for m in self._meds:
-            c = m.categoria_terapeutica
-            if c:
+            for c in m.categorias_lista():
                 conteo[c] = conteo.get(c, 0) + 1
         return dict(sorted(conteo.items(), key=lambda x: -x[1]))
 
@@ -674,9 +768,11 @@ class CLI:
         if not categorias:
             print("\n⚠ No hay categorías clasificadas.")
             return
+
+        conteo = self._s.conteo_por_categoria()
         print("\nCategorías disponibles:")
         for i, c in enumerate(categorias, 1):
-            print(f"  {i:>2}. {c}")
+            print(f"  {i:>2}. {c}  ({conteo.get(c, 0)})")
         print("\nPodés escribir el nombre (parcial) o el número de la lista.")
         t = input("Categoría: ").strip()
         if not t:

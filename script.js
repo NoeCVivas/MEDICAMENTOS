@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTitle = document.getElementById('modal-title');
     const modalMessage = document.getElementById('modal-message');
     const modalInput = document.getElementById('modal-input');
+    const modalOptions = document.getElementById('modal-options');
     const modalCancel = document.getElementById('modal-cancel');
     const modalAccept = document.getElementById('modal-accept');
 
@@ -24,11 +25,21 @@ document.addEventListener('DOMContentLoaded', () => {
         "0": "Salir"
     };
 
+    // ============================================================
+    // MODAL MODO 1: input de texto libre
+    // ============================================================
     function pedirDatoModal(titulo, mensaje) {
         return new Promise((resolve) => {
             modalTitle.textContent = titulo;
             modalMessage.textContent = mensaje;
+
+            // Configurar vista: input visible, opciones ocultas
+            modalInput.style.display = 'block';
             modalInput.value = '';
+            modalOptions.style.display = 'none';
+            modalOptions.innerHTML = '';
+            modalAccept.style.display = 'inline-block';
+
             modalOverlay.classList.add('active');
             modalInput.focus();
 
@@ -42,9 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const onAccept = () => cerrarModal(modalInput.value.trim());
             const onCancel = () => cerrarModal(null);
-            const onKeyPress = (e) => {
-                if (e.key === 'Enter') onAccept();
-            };
+            const onKeyPress = (e) => { if (e.key === 'Enter') onAccept(); };
 
             modalAccept.addEventListener('click', onAccept);
             modalCancel.addEventListener('click', onCancel);
@@ -52,7 +61,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function ejecutarConsulta(queryId) {
+    // ============================================================
+    // MODAL MODO 2: lista de opciones clickeables
+    // ============================================================
+    function pedirOpcionModal(titulo, mensaje, opciones) {
+        return new Promise((resolve) => {
+            modalTitle.textContent = titulo;
+            modalMessage.textContent = mensaje;
+
+            // Configurar vista: input oculto, opciones visibles
+            modalInput.style.display = 'none';
+            modalAccept.style.display = 'none';   // sin botón Aceptar
+            modalOptions.style.display = 'flex';
+            modalOptions.innerHTML = '';
+
+            opciones.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'modal-option-btn';
+                btn.textContent = opt.label;
+                btn.dataset.valor = opt.valor;
+
+                btn.addEventListener('click', () => cerrarModal(opt.valor));
+                modalOptions.appendChild(btn);
+            });
+
+            modalOverlay.classList.add('active');
+
+            const cerrarModal = (valor) => {
+                modalOverlay.classList.remove('active');
+                modalCancel.removeEventListener('click', onCancel);
+                resolve(valor);
+            };
+
+            const onCancel = () => cerrarModal(null);
+            modalCancel.addEventListener('click', onCancel);
+        });
+    }
+
+    // ============================================================
+    // Router de consultas
+    // ============================================================
+    async function ejecutarConsulta(queryId) {
         if (!queryId) return;
 
         consultaNumSpan.textContent =
@@ -60,15 +109,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
         switch (queryId) {
             case "1": mostrarTodos(); break;
-            case "2": buscarConModal("2", "Buscar por Laboratorio", "Ingrese el laboratorio (Roemmers / Casasco):"); break;
-            case "3": buscarConModal("3", "Buscar por Nombre Comercial", "Ingrese el nombre comercial:"); break;
-            case "4": buscarConModal("4", "Buscar por Principio Activo", "Ingrese el principio activo:"); break;
-            case "5": buscarConModal("5", "Buscar por Acción Terapéutica", "Ingrese la acción terapéutica:"); break;
-            case "6": buscarConModal("6", "Filtrar por Población", "Ingrese la población (Pediátrico / Adultos):"); break;
-            case "7": buscarConModal("7", "Filtrar por Categoría", "Ingrese la categoría (ej: Cardiología, Antibiótico):"); break;
+
+            case "2": await buscarConOpciones(
+                "2", "Buscar por Laboratorio",
+                "Elegí un laboratorio:", "laboratorios"); break;
+
+            case "3": buscarConModal(
+                "3", "Buscar por Nombre Comercial",
+                "Ingrese el nombre comercial:"); break;
+
+            case "4": buscarConModal(
+                "4", "Buscar por Principio Activo",
+                "Ingrese el principio activo:"); break;
+
+            case "5": buscarConModal(
+                "5", "Buscar por Acción Terapéutica",
+                "Ingrese la acción terapéutica:"); break;
+
+            case "6": await buscarConOpciones(
+                "6", "Filtrar por Población",
+                "Elegí la población:", "poblaciones"); break;
+
+            case "7": await buscarConOpciones(
+                "7", "Filtrar por Categoría",
+                "Elegí una categoría:", "categorias"); break;
+
             case "8": bajarImagen(); break;
             case "9": borrarPantalla(); break;
             case "0": salir(); break;
+
             default: break;
         }
     }
@@ -90,6 +159,9 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSalir.addEventListener('click', () => ejecutarConsulta("0"));
     }
 
+    // ============================================================
+    // Render
+    // ============================================================
     function mostrarCargando() {
         resultadosDiv.innerHTML =
             `<p class="placeholder-text">Consultando a la base de datos...</p>`;
@@ -133,6 +205,9 @@ document.addEventListener('DOMContentLoaded', () => {
         resultadosDiv.innerHTML = html;
     }
 
+    // ============================================================
+    // Consultas
+    // ============================================================
     async function mostrarTodos() {
         mostrarCargando();
         try {
@@ -164,13 +239,60 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // NUEVA: carga opciones del backend y abre el modal clickeable
+    async function buscarConOpciones(opcion, titulo, mensaje, tipo) {
+        mostrarCargando();
+
+        let opciones = [];
+        try {
+            const resp = await fetch(`${API_URL}/opciones/${tipo}`);
+            if (!resp.ok) throw new Error("Error al cargar opciones");
+            opciones = await resp.json();
+        } catch (error) {
+            mostrarError("No se pudieron cargar las opciones del servidor.");
+            return;
+        }
+
+        if (!opciones.length) {
+            mostrarError("No hay opciones disponibles para esta consulta.");
+            return;
+        }
+
+        // Limpiar el panel mientras se elige
+        resultadosDiv.innerHTML =
+            `<p class="placeholder-text">Esperando selección...</p>`;
+
+        const valor = await pedirOpcionModal(titulo, mensaje, opciones);
+        if (!valor) {
+            resultadosDiv.innerHTML =
+                `<p class="placeholder-text">Consulta cancelada.</p>`;
+            return;
+        }
+
+        mostrarCargando();
+        try {
+            const response = await fetch(`${API_URL}/buscar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ opcion: opcion, query: valor })
+            });
+            if (!response.ok) throw new Error("Error en el servidor");
+            const data = await response.json();
+            renderizarTabla(data);
+        } catch (error) {
+            mostrarError("Error al realizar la búsqueda. Verifique la consola de Python.");
+        }
+    }
+
     async function bajarImagen() {
-        const nombre = await pedirDatoModal("Buscar Imagen", "Ingrese el nombre del medicamento:");
+        const nombre = await pedirDatoModal(
+            "Buscar Imagen", "Ingrese el nombre del medicamento:");
         if (!nombre) return;
 
         mostrarCargando();
         try {
-            const response = await fetch(`${API_URL}/imagen?nombre=${encodeURIComponent(nombre)}`);
+            const response = await fetch(
+                `${API_URL}/imagen?nombre=${encodeURIComponent(nombre)}`);
 
             if (!response.ok) {
                 const errData = await response.json();
