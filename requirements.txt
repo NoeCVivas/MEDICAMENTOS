@@ -1,0 +1,17 @@
+# ============================================================
+# Dependencias del proyecto Scraping_Medicamentos
+# ============================================================
+
+# --- Web scraping ---
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+certifi>=2024.2.2
+urllib3>=2.0.0
+
+# --- Automatización de navegador (Casasco) ---
+selenium>=4.15.0
+webdriver-manager>=4.0.0
+
+# --- Servidor web (backend Flask) ---
+Flask>=3.0.0
+flask-cors>=4.0.0
